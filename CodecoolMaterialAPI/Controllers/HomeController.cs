@@ -1,4 +1,4 @@
-﻿using CodecoolMaterialAPI.Models;
+﻿using CodecoolMaterialAPI.DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
