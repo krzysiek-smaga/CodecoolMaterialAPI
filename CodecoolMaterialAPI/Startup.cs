@@ -45,6 +45,7 @@ namespace CodecoolMaterialAPI
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddControllersWithViews();
 
             services.AddSwaggerGen(options =>

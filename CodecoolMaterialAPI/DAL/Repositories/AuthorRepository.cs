@@ -1,6 +1,7 @@
 ﻿using CodecoolMaterialAPI.DAL.Data;
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,16 @@ namespace CodecoolMaterialAPI.DAL.Repositories
     {
         public AuthorRepository(CodecoolMaterialDbContext context) : base(context)
         {
+        }
+
+        public async Task<Author> GetAuthorByIdWithModels(int id)
+        {
+            return await _context.Authors
+                .Include(x => x.EduMaterialNavPoints)
+                .Include(x => x.EduMaterialNavPoints)
+                    .ThenInclude(x => x.EduMaterialType)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.ID == id);
         }
     }
 }

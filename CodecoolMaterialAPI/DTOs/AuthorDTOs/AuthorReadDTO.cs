@@ -11,8 +11,10 @@ namespace CodecoolMaterialAPI.DTOs.AuthorDTOs
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<EduMaterialNavPointInAuthorReadDTO> CreatedEduMaterialNavPoints { get; set; }
+        public int AmountOfCreatedMaterials { get { return CreatedMaterials.Count; } }
 
-        public int AmountOfCreatedMaterials { get { return CreatedEduMaterialNavPoints.Count; } }
+        public ICollection<EduMaterialNavPointInAuthorReadDTO> CreatedMaterials { get; set; }
+
+        
     }
 }
