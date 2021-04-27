@@ -10,5 +10,6 @@ namespace CodecoolMaterialAPI.DAL.Interfaces
     {
         Task<Author> GetAuthorByIdWithModels(int id);
         Task<ICollection<Author>> GetAllAuthorsWithModels();
+        Task<Author> CheckIfAuthorExists(Author author);
     }
 }

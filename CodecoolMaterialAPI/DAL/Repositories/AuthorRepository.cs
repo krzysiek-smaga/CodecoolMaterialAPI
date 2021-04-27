@@ -34,5 +34,12 @@ namespace CodecoolMaterialAPI.DAL.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<Author> CheckIfAuthorExists(Author author)
+        {
+            return await _context.Authors
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Name == author.Name && a.Description == author.Description);
+        }
     }
 }

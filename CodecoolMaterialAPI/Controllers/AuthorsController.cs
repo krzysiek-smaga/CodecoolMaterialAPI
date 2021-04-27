@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CodecoolMaterialAPI.DAL.Interfaces;
+using CodecoolMaterialAPI.DAL.Models;
 using CodecoolMaterialAPI.DTOs.AuthorDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -65,6 +66,32 @@ namespace CodecoolMaterialAPI.Controllers
             var authorDTO = _mapper.Map<AuthorReadDTO>(author);
             _logger.LogInformation($"GET api/authors/{id} - Ok");
             return Ok(authorDTO);
+        }
+
+        //POST api/songs
+        /// <summary>
+        /// POST method creates new author
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<AuthorReadDTO>> CreateAuthor(AuthorCreateDTO authorCreateDTO)
+        {
+            var author = _mapper.Map<Author>(authorCreateDTO);
+
+            var existAuthor = await _db.Authors.CheckIfAuthorExists(author);
+
+            if (existAuthor != null)
+            {
+                _logger.LogError("POST api/authors - Bad Request - Author already exists");
+                return BadRequest("Error - Author already exists");
+            }
+
+            await _db.Authors.Create(author);
+            await _db.Save();
+
+            var authorDTO = _mapper.Map<AuthorReadDTO>(author);
+            _logger.LogInformation($"POST api/authors - Author added to database");
+
+            return CreatedAtAction(nameof(GetAuthorById), new { id = authorDTO.ID }, authorDTO);
         }
     }
 }

@@ -9,9 +9,9 @@ namespace CodecoolMaterialAPI.DAL.Models
 {
     public class Author : EntityObject
     {
-        [Required, MaxLength(50)]
+        [Required, MaxLength(50), MinLength(2)]
         public string Name { get; set; }
-        [Required, MaxLength(200)]
+        [Required, MaxLength(200), MinLength(2)]
         public string Description { get; set; }
 
         public ICollection<EduMaterialNavPoint> EduMaterialNavPoints { get; set; }
