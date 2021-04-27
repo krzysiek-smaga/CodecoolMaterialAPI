@@ -9,11 +9,11 @@ namespace CodecoolMaterialAPI.DAL.Models
 {
     public class EduMaterialNavPoint : EntityObject
     {
-        [Required, MaxLength(200)]
+        [Required, MaxLength(200), MinLength(2)]
         public string Title { get; set; }
-        [Required, MaxLength(200)]
+        [Required, MaxLength(500), MinLength(2)]
         public string Description { get; set; }
-        [Required, MaxLength(500)]
+        [Required, MaxLength(500), MinLength(2)]
         public string Location { get; set; }
         [Required]
         [DataType(DataType.Date)]

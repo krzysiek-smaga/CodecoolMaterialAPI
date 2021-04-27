@@ -16,7 +16,7 @@ namespace CodecoolMaterialAPI.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class EduMaterialTypesController : Controller
+    public class EduMaterialTypesController : ControllerBase
     {
         private readonly IUnitOfWork _db;
         private readonly ILogger<EduMaterialTypesController> _logger;
