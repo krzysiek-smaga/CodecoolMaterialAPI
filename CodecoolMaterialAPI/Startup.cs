@@ -15,6 +15,8 @@ using System.IO;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using CodecoolMaterialAPI.DAL.Data;
+using CodecoolMaterialAPI.DAL.Interfaces;
+using CodecoolMaterialAPI.DAL.Repositories;
 
 namespace CodecoolMaterialAPI
 {
@@ -40,6 +42,9 @@ namespace CodecoolMaterialAPI
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddControllersWithViews();
 
             services.AddSwaggerGen(options =>
