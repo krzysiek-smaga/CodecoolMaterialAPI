@@ -93,5 +93,27 @@ namespace CodecoolMaterialAPI.Controllers
 
             return CreatedAtAction(nameof(GetAuthorById), new { id = authorDTO.ID }, authorDTO);
         }
+
+        //DELETE api/authors/{id}
+        /// <summary>
+        /// DELETE method deletes author
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteAuthorById(int id)
+        {
+            var author = await _db.Authors.GetById(id);
+
+            if (author == null)
+            {
+                _logger.LogError($"DELETE api/authors/{id} - Not Found");
+                return NotFound();
+            }
+
+            await _db.Authors.Delete(author);
+            await _db.Save();
+
+            _logger.LogInformation($"GET api/authors/{id} - No Content - Author deleted");
+            return NoContent();
+        }
     }
 }
