@@ -8,5 +8,8 @@ namespace CodecoolMaterialAPI.DAL.Interfaces
 {
     public interface IEduMaterialTypeRepository : IRepository<EduMaterialType>
     {
+        Task<EduMaterialType> GetEduMaterialTypeByIdWithModels(int id);
+        Task<ICollection<EduMaterialType>> GetAllEduMaterialTypesWithModels();
+        Task<EduMaterialType> CheckIfEduMaterialTypeExists(EduMaterialType eduMaterialType);
     }
 }
