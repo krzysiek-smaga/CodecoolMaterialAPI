@@ -2,6 +2,7 @@
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Models;
 using CodecoolMaterialAPI.DTOs.AuthorDTOs;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -114,6 +115,38 @@ namespace CodecoolMaterialAPI.Controllers
             await _db.Save();
 
             _logger.LogInformation($"PUT api/authors/{id} - No Content - Author updated");
+            return NoContent();
+        }
+
+        //PATCH api/authors/{id}
+        /// <summary>
+        /// PATCH method partially updates author
+        /// </summary>
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> PartialUpdateAuthorById(int id, JsonPatchDocument<AuthorUpdateDTO> patchDocument)
+        {
+            var author = await _db.Authors.GetById(id);
+
+            if (author == null)
+            {
+                _logger.LogError($"PATCH api/authors/{id} - Not Found");
+                return NotFound();
+            }
+
+            var authorToPatch = _mapper.Map<AuthorUpdateDTO>(author);
+            patchDocument.ApplyTo(authorToPatch, ModelState);
+
+            if (!TryValidateModel(authorToPatch))
+            {
+                _logger.LogError($"PATCH api/authors/{id} - Problem with validation");
+                return ValidationProblem(ModelState);
+            }
+
+            _mapper.Map(authorToPatch, author);
+            await _db.Authors.Update(author);
+            await _db.Save();
+
+            _logger.LogInformation($"PATCH api/authors/{id} - No Content - Author updated partially");
             return NoContent();
         }
 
