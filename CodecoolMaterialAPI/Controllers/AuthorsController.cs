@@ -28,6 +28,26 @@ namespace CodecoolMaterialAPI.Controllers
             _mapper = mapper;
         }
 
+        //GET api/authors
+        /// <summary>
+        /// GET method returns all authors
+        /// </summary>
+        /// <returns>Collection of all authors</returns>
+        [HttpGet]
+        public async Task<ActionResult<ICollection<AuthorReadDTO>>> GetAllAuthors()
+        {
+            var authors = await _db.Authors.GetAllAuthorsWithModels();
+            if (authors == null)
+            {
+                _logger.LogError("GET api/authors - No Content");
+                return NoContent();
+            }
+
+            var authorsDTO = _mapper.Map<ICollection<AuthorReadDTO>>(authors);
+            _logger.LogInformation("GET api/authors - Ok");
+            return Ok(authorsDTO);
+        }
+
         //GET api/authors/{id}
         /// <summary>
         /// GET method returns one author by id

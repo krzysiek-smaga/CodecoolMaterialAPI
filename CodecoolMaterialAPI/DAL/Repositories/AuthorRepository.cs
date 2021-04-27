@@ -24,5 +24,15 @@ namespace CodecoolMaterialAPI.DAL.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.ID == id);
         }
+
+        public async Task<ICollection<Author>> GetAllAuthorsWithModels()
+        {
+            return await _context.Authors
+                .Include(x => x.EduMaterialNavPoints)
+                .Include(x => x.EduMaterialNavPoints)
+                    .ThenInclude(x => x.EduMaterialType)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

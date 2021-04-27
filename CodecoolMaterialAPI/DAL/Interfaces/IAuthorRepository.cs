@@ -9,5 +9,6 @@ namespace CodecoolMaterialAPI.DAL.Interfaces
     public interface IAuthorRepository : IRepository<Author>
     {
         Task<Author> GetAuthorByIdWithModels(int id);
+        Task<ICollection<Author>> GetAllAuthorsWithModels();
     }
 }
