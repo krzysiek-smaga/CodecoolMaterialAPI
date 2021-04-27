@@ -94,6 +94,29 @@ namespace CodecoolMaterialAPI.Controllers
             return CreatedAtAction(nameof(GetAuthorById), new { id = authorDTO.ID }, authorDTO);
         }
 
+        //PUT api/authors/{id}
+        /// <summary>
+        /// PUT method updates author
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateAuthorById(int id, AuthorUpdateDTO authorUpdateDTO)
+        {
+            var author = await _db.Authors.GetById(id);
+
+            if (author == null)
+            {
+                _logger.LogError($"PUT api/authors/{id} - Not Found");
+                return NotFound();
+            }
+
+            _mapper.Map(authorUpdateDTO, author);
+            await _db.Authors.Update(author);
+            await _db.Save();
+
+            _logger.LogInformation($"PUT api/authors/{id} - No Content - Author updated");
+            return NoContent();
+        }
+
         //DELETE api/authors/{id}
         /// <summary>
         /// DELETE method deletes author
