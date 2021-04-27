@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using CodecoolMaterialAPI.DAL.Data;
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Repositories;
+using Newtonsoft.Json.Serialization;
 
 namespace CodecoolMaterialAPI
 {
@@ -46,7 +47,11 @@ namespace CodecoolMaterialAPI
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            services.AddControllersWithViews();
+
+            services.AddControllers().AddNewtonsoftJson(opt =>
+            {
+                opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            });
 
             services.AddSwaggerGen(options =>
             {

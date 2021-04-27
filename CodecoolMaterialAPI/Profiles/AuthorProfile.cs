@@ -23,6 +23,8 @@ namespace CodecoolMaterialAPI.Profiles
             CreateMap<AuthorCreateDTO, Author>();
 
             CreateMap<AuthorUpdateDTO, Author>();
+
+            CreateMap<Author, AuthorUpdateDTO>();
         }
     }
 }
