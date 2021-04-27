@@ -1,4 +1,3 @@
-using CodecoolMaterialAPI.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -15,6 +14,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using CodecoolMaterialAPI.DAL.Data;
 
 namespace CodecoolMaterialAPI
 {

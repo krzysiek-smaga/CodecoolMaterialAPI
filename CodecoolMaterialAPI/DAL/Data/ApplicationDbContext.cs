@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CodecoolMaterialAPI.Data
+namespace CodecoolMaterialAPI.DAL.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace CodecoolMaterialAPI.Models
+namespace CodecoolMaterialAPI.DAL.Models
 {
     public class ErrorViewModel
     {
