@@ -14,8 +14,8 @@ namespace CodecoolMaterialAPI.Profiles
         {
             // Source -> Target
 
-            CreateMap<Review, EduMaterialTypeReadDTO>()
-                .ForMember(dest => dest.EduMaterialsOfThisType, opt => opt.MapFrom(src => src.EduMaterialNavPoint));
+            CreateMap<EduMaterialType, EduMaterialTypeReadDTO>()
+                .ForMember(dest => dest.EduMaterialsOfThisType, opt => opt.MapFrom(src => src.EduMaterialNavPoints));
 
             CreateMap<EduMaterialNavPoint, EduMaterialNavPointInEduMaterialTypeReadDTO>()
                 .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.Name));
