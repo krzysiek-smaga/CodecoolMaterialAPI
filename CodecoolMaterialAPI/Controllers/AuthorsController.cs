@@ -69,7 +69,7 @@ namespace CodecoolMaterialAPI.Controllers
             return Ok(authorDTO);
         }
 
-        //POST api/songs
+        //POST api/author
         /// <summary>
         /// POST method creates new author
         /// </summary>

@@ -11,7 +11,7 @@ namespace CodecoolMaterialAPI.DAL.Models
     {
         [Required, Range(0, 10)]
         public int Rate { get; set; }
-        [Required, MaxLength(200)]
+        [Required, MaxLength(200), MinLength(2)]
         public string Comment { get; set; }
 
         [Required]
