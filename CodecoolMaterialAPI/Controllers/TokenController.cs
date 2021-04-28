@@ -1,4 +1,7 @@
 ﻿using CodecoolMaterialAPI.DAL.Data;
+using CodecoolMaterialAPI.DAL.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +34,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// POST method creates JWT token for user
         /// </summary>
-        [HttpPost]
+        [HttpPost("/login")]
         public async Task<IActionResult> Login(string username, string password)
         {
             if (await IsValidUsernameAndPassword(username, password))
@@ -43,6 +46,35 @@ namespace CodecoolMaterialAPI.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        /// <summary>
+        /// POST method creates JWT token for user
+        /// </summary>
+        [Authorize(Roles = "admin")]
+        [HttpPost("/register-admin")]
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        {
+            var userExists = await _userManager.FindByNameAsync(model.Username);
+            if (userExists != null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
+
+            IdentityUser user = new IdentityUser();
+            user.UserName = model.Username;
+            user.Email = model.Email;
+            user.EmailConfirmed = true;
+
+            IdentityResult result = _userManager.CreateAsync(user, model.Password).Result;
+
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+
+            if (result.Succeeded)
+            {
+                _userManager.AddToRoleAsync(user, "admin").Wait();
+            }
+
+            return Ok(new Response { Status = "Success", Message = "User created successfully!" });
         }
 
         private async Task<bool> IsValidUsernameAndPassword(string username, string password)
