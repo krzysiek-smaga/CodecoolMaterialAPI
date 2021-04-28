@@ -3,6 +3,7 @@ using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Models;
 using CodecoolMaterialAPI.DTOs.AuthorDTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -41,16 +42,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<ICollection<AuthorReadDTO>>> GetAllAuthors()
         {
-            var authors = await _db.Authors.GetAllAuthorsWithModels();
-            if (authors == null)
+            try
             {
-                _logger.LogError("GET api/authors - No Content");
-                return NoContent();
-            }
+                var authors = await _db.Authors.GetAllAuthorsWithModels();
+                if (authors == null)
+                {
+                    _logger.LogError("GET api/authors - No Content");
+                    return NoContent();
+                }
 
-            var authorsDTO = _mapper.Map<ICollection<AuthorReadDTO>>(authors);
-            _logger.LogInformation("GET api/authors - Ok");
-            return Ok(authorsDTO);
+                var authorsDTO = _mapper.Map<ICollection<AuthorReadDTO>>(authors);
+                _logger.LogInformation("GET api/authors - Ok");
+                return Ok(authorsDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //GET api/authors/{id}
@@ -61,16 +70,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<AuthorReadDTO>> GetAuthorById(int id)
         {
-            var author = await _db.Authors.GetAuthorByIdWithModels(id);
-            if (author == null)
+            try
             {
-                _logger.LogError($"GET api/authors/{id} - Not Found");
-                return NotFound();
-            }
+                var author = await _db.Authors.GetAuthorByIdWithModels(id);
+                if (author == null)
+                {
+                    _logger.LogError($"GET api/authors/{id} - Not Found");
+                    return NotFound();
+                }
 
-            var authorDTO = _mapper.Map<AuthorReadDTO>(author);
-            _logger.LogInformation($"GET api/authors/{id} - Ok");
-            return Ok(authorDTO);
+                var authorDTO = _mapper.Map<AuthorReadDTO>(author);
+                _logger.LogInformation($"GET api/authors/{id} - Ok");
+                return Ok(authorDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //POST api/author
@@ -81,23 +98,31 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AuthorReadDTO>> CreateAuthor(AuthorCreateDTO authorCreateDTO)
         {
-            var author = _mapper.Map<Author>(authorCreateDTO);
-
-            var existAuthor = await _db.Authors.CheckIfAuthorExists(author);
-
-            if (existAuthor != null)
+            try
             {
-                _logger.LogError("POST api/authors - Bad Request - Author already exists");
-                return BadRequest("Error - Author already exists");
+                var author = _mapper.Map<Author>(authorCreateDTO);
+
+                var existAuthor = await _db.Authors.CheckIfAuthorExists(author);
+
+                if (existAuthor != null)
+                {
+                    _logger.LogError("POST api/authors - Bad Request - Author already exists");
+                    return BadRequest("Error - Author already exists");
+                }
+
+                await _db.Authors.Create(author);
+                await _db.Save();
+
+                var authorDTO = _mapper.Map<AuthorReadDTO>(author);
+                _logger.LogInformation($"POST api/authors - Author added to database");
+
+                return CreatedAtAction(nameof(GetAuthorById), new { id = authorDTO.ID }, authorDTO);
             }
-
-            await _db.Authors.Create(author);
-            await _db.Save();
-
-            var authorDTO = _mapper.Map<AuthorReadDTO>(author);
-            _logger.LogInformation($"POST api/authors - Author added to database");
-
-            return CreatedAtAction(nameof(GetAuthorById), new { id = authorDTO.ID }, authorDTO);
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //PUT api/authors/{id}
@@ -108,20 +133,28 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAuthorById(int id, AuthorUpdateDTO authorUpdateDTO)
         {
-            var author = await _db.Authors.GetById(id);
-
-            if (author == null)
+            try
             {
-                _logger.LogError($"PUT api/authors/{id} - Not Found");
-                return NotFound();
+                var author = await _db.Authors.GetById(id);
+
+                if (author == null)
+                {
+                    _logger.LogError($"PUT api/authors/{id} - Not Found");
+                    return NotFound();
+                }
+
+                _mapper.Map(authorUpdateDTO, author);
+                await _db.Authors.Update(author);
+                await _db.Save();
+
+                _logger.LogInformation($"PUT api/authors/{id} - No Content - Author updated");
+                return NoContent();
             }
-
-            _mapper.Map(authorUpdateDTO, author);
-            await _db.Authors.Update(author);
-            await _db.Save();
-
-            _logger.LogInformation($"PUT api/authors/{id} - No Content - Author updated");
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //PATCH api/authors/{id}
@@ -132,29 +165,37 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult> PartialUpdateAuthorById(int id, JsonPatchDocument<AuthorUpdateDTO> patchDocument)
         {
-            var author = await _db.Authors.GetById(id);
-
-            if (author == null)
+            try
             {
-                _logger.LogError($"PATCH api/authors/{id} - Not Found");
-                return NotFound();
+                var author = await _db.Authors.GetById(id);
+
+                if (author == null)
+                {
+                    _logger.LogError($"PATCH api/authors/{id} - Not Found");
+                    return NotFound();
+                }
+
+                var authorToPatch = _mapper.Map<AuthorUpdateDTO>(author);
+                patchDocument.ApplyTo(authorToPatch, ModelState);
+
+                if (!TryValidateModel(authorToPatch))
+                {
+                    _logger.LogError($"PATCH api/authors/{id} - Problem with validation");
+                    return ValidationProblem(ModelState);
+                }
+
+                _mapper.Map(authorToPatch, author);
+                await _db.Authors.Update(author);
+                await _db.Save();
+
+                _logger.LogInformation($"PATCH api/authors/{id} - No Content - Author updated partially");
+                return NoContent();
             }
-
-            var authorToPatch = _mapper.Map<AuthorUpdateDTO>(author);
-            patchDocument.ApplyTo(authorToPatch, ModelState);
-
-            if (!TryValidateModel(authorToPatch))
+            catch (Exception ex)
             {
-                _logger.LogError($"PATCH api/authors/{id} - Problem with validation");
-                return ValidationProblem(ModelState);
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
             }
-
-            _mapper.Map(authorToPatch, author);
-            await _db.Authors.Update(author);
-            await _db.Save();
-
-            _logger.LogInformation($"PATCH api/authors/{id} - No Content - Author updated partially");
-            return NoContent();
         }
 
         //DELETE api/authors/{id}
@@ -165,19 +206,27 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAuthorById(int id)
         {
-            var author = await _db.Authors.GetById(id);
-
-            if (author == null)
+            try
             {
-                _logger.LogError($"DELETE api/authors/{id} - Not Found");
-                return NotFound();
+                var author = await _db.Authors.GetById(id);
+
+                if (author == null)
+                {
+                    _logger.LogError($"DELETE api/authors/{id} - Not Found");
+                    return NotFound();
+                }
+
+                await _db.Authors.Delete(author);
+                await _db.Save();
+
+                _logger.LogInformation($"GET api/authors/{id} - No Content - Author deleted");
+                return NoContent();
             }
-
-            await _db.Authors.Delete(author);
-            await _db.Save();
-
-            _logger.LogInformation($"GET api/authors/{id} - No Content - Author deleted");
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
     }
 }

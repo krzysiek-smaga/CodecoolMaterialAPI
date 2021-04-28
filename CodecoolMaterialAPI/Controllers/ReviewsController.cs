@@ -40,16 +40,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<ICollection<ReviewReadDTO>>> GetAllReviews()
         {
-            var reviews = await _db.Reviews.GetAllReviewsWithModels();
-            if (reviews == null)
+            try
             {
-                _logger.LogError("GET api/reviews - No Content");
-                return NoContent();
-            }
+                var reviews = await _db.Reviews.GetAllReviewsWithModels();
+                if (reviews == null)
+                {
+                    _logger.LogError("GET api/reviews - No Content");
+                    return NoContent();
+                }
 
-            var reviewsDTO = _mapper.Map<ICollection<ReviewReadDTO>>(reviews);
-            _logger.LogInformation("GET api/reviews - Ok");
-            return Ok(reviewsDTO);
+                var reviewsDTO = _mapper.Map<ICollection<ReviewReadDTO>>(reviews);
+                _logger.LogInformation("GET api/reviews - Ok");
+                return Ok(reviewsDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //GET api/reviews/{id}
@@ -60,16 +68,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ReviewReadDTO>> GetReviewById(int id)
         {
-            var review = await _db.Reviews.GetReviewByIdWithModels(id);
-            if (review == null)
+            try
             {
-                _logger.LogError($"GET api/reviews/{id} - Not Found");
-                return NotFound();
-            }
+                var review = await _db.Reviews.GetReviewByIdWithModels(id);
+                if (review == null)
+                {
+                    _logger.LogError($"GET api/reviews/{id} - Not Found");
+                    return NotFound();
+                }
 
-            var reviewDTO = _mapper.Map<ReviewReadDTO>(review);
-            _logger.LogInformation($"GET api/reviews/{id} - Ok");
-            return Ok(reviewDTO);
+                var reviewDTO = _mapper.Map<ReviewReadDTO>(review);
+                _logger.LogInformation($"GET api/reviews/{id} - Ok");
+                return Ok(reviewDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //POST api/reviews
@@ -80,24 +96,32 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<ReviewReadDTO>> CreateReview(ReviewCreateDTO reviewCreateDTO)
         {
-            var review = _mapper.Map<Review>(reviewCreateDTO);
-
-            var eduMatID = review.EduMaterialNavPointID;
-            var eduMatById = await _db.EduMaterialNavPoints.GetById(eduMatID);
-
-            if (eduMatById == null)
+            try
             {
-                _logger.LogError($"POST api/reviews - Bad Request - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
-                return BadRequest($"Error - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                var review = _mapper.Map<Review>(reviewCreateDTO);
+
+                var eduMatID = review.EduMaterialNavPointID;
+                var eduMatById = await _db.EduMaterialNavPoints.GetById(eduMatID);
+
+                if (eduMatById == null)
+                {
+                    _logger.LogError($"POST api/reviews - Bad Request - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                    return BadRequest($"Error - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                }
+
+                await _db.Reviews.Create(review);
+                await _db.Save();
+
+                var reviewDTO = _mapper.Map<ReviewReadDTO>(review);
+                _logger.LogInformation($"POST api/reviews - Review added to database");
+
+                return CreatedAtAction(nameof(GetReviewById), new { id = reviewDTO.ID }, reviewDTO);
             }
-
-            await _db.Reviews.Create(review);
-            await _db.Save();
-
-            var reviewDTO = _mapper.Map<ReviewReadDTO>(review);
-            _logger.LogInformation($"POST api/reviews - Review added to database");
-
-            return CreatedAtAction(nameof(GetReviewById), new { id = reviewDTO.ID }, reviewDTO);
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //PUT api/reviews/{id}
@@ -108,29 +132,37 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateReviewById(int id, ReviewUpdateDTO reviewUpdateDTO)
         {
-            var review = await _db.Reviews.GetById(id);
-
-            if (review == null)
+            try
             {
-                _logger.LogError($"PUT api/reviews/{id} - Not Found");
-                return NotFound();
+                var review = await _db.Reviews.GetById(id);
+
+                if (review == null)
+                {
+                    _logger.LogError($"PUT api/reviews/{id} - Not Found");
+                    return NotFound();
+                }
+
+                var eduMatID = reviewUpdateDTO.EduMaterialNavPointID;
+                var eduMatById = await _db.EduMaterialNavPoints.GetById(eduMatID);
+
+                if (eduMatById == null)
+                {
+                    _logger.LogError($"PUT api/reviews - Bad Request - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                    return BadRequest($"Error - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                }
+
+                _mapper.Map(reviewUpdateDTO, review);
+                await _db.Reviews.Update(review);
+                await _db.Save();
+
+                _logger.LogInformation($"PUT api/reviews/{id} - No Content - Review updated");
+                return NoContent();
             }
-
-            var eduMatID = reviewUpdateDTO.EduMaterialNavPointID;
-            var eduMatById = await _db.EduMaterialNavPoints.GetById(eduMatID);
-
-            if (eduMatById == null)
+            catch (Exception ex)
             {
-                _logger.LogError($"PUT api/reviews - Bad Request - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
-                return BadRequest($"Error - EduMaterialNavPoint with id:{eduMatID} doesn't exists");
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
             }
-
-            _mapper.Map(reviewUpdateDTO, review);
-            await _db.Reviews.Update(review);
-            await _db.Save();
-
-            _logger.LogInformation($"PUT api/reviews/{id} - No Content - Review updated");
-            return NoContent();
         }
 
         //DELETE api/reviews/{id}
@@ -141,19 +173,27 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteReviewById(int id)
         {
-            var review = await _db.Reviews.GetById(id);
-
-            if (review == null)
+            try
             {
-                _logger.LogError($"DELETE api/reviews/{id} - Not Found");
-                return NotFound();
+                var review = await _db.Reviews.GetById(id);
+
+                if (review == null)
+                {
+                    _logger.LogError($"DELETE api/reviews/{id} - Not Found");
+                    return NotFound();
+                }
+
+                await _db.Reviews.Delete(review);
+                await _db.Save();
+
+                _logger.LogInformation($"GET api/reviews/{id} - No Content - Review deleted");
+                return NoContent();
             }
-
-            await _db.Reviews.Delete(review);
-            await _db.Save();
-
-            _logger.LogInformation($"GET api/reviews/{id} - No Content - Review deleted");
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
     }
 }

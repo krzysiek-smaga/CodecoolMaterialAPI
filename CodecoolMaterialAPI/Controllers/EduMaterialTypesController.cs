@@ -40,16 +40,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<ICollection<EduMaterialTypeReadDTO>>> GetAllEduMaterialTypes()
         {
-            var eduMaterialTypes = await _db.EduMaterialTypes.GetAllEduMaterialTypesWithModels();
-            if (eduMaterialTypes == null)
+            try
             {
-                _logger.LogError("GET api/edumaterialtypes - No Content");
-                return NoContent();
-            }
+                var eduMaterialTypes = await _db.EduMaterialTypes.GetAllEduMaterialTypesWithModels();
+                if (eduMaterialTypes == null)
+                {
+                    _logger.LogError("GET api/edumaterialtypes - No Content");
+                    return NoContent();
+                }
 
-            var eduMaterialTypesDTO = _mapper.Map<ICollection<EduMaterialTypeReadDTO>>(eduMaterialTypes);
-            _logger.LogInformation("GET api/edumaterialtypes - Ok");
-            return Ok(eduMaterialTypesDTO);
+                var eduMaterialTypesDTO = _mapper.Map<ICollection<EduMaterialTypeReadDTO>>(eduMaterialTypes);
+                _logger.LogInformation("GET api/edumaterialtypes - Ok");
+                return Ok(eduMaterialTypesDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //GET api/edumaterialtypes/{id}
@@ -60,16 +68,24 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<EduMaterialTypeReadDTO>> GetEduMaterialTypeById(int id)
         {
-            var eduMaterialType = await _db.EduMaterialTypes.GetEduMaterialTypeByIdWithModels(id);
-            if (eduMaterialType == null)
+            try
             {
-                _logger.LogError($"GET api/edumaterialtypes/{id} - Not Found");
-                return NotFound();
-            }
+                var eduMaterialType = await _db.EduMaterialTypes.GetEduMaterialTypeByIdWithModels(id);
+                if (eduMaterialType == null)
+                {
+                    _logger.LogError($"GET api/edumaterialtypes/{id} - Not Found");
+                    return NotFound();
+                }
 
-            var eduMaterialTypeDTO = _mapper.Map<EduMaterialTypeReadDTO>(eduMaterialType);
-            _logger.LogInformation($"GET api/edumaterialtypes/{id} - Ok");
-            return Ok(eduMaterialTypeDTO);
+                var eduMaterialTypeDTO = _mapper.Map<EduMaterialTypeReadDTO>(eduMaterialType);
+                _logger.LogInformation($"GET api/edumaterialtypes/{id} - Ok");
+                return Ok(eduMaterialTypeDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //POST api/edumaterialtypes
@@ -80,23 +96,31 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<EduMaterialTypeReadDTO>> CreateEduMaterialType(EduMaterialTypeCreateDTO eduMaterialTypeCreateDTO)
         {
-            var eduMaterialType = _mapper.Map<EduMaterialType>(eduMaterialTypeCreateDTO);
-
-            var existEduMaterialType = await _db.EduMaterialTypes.CheckIfEduMaterialTypeExists(eduMaterialType);
-
-            if (existEduMaterialType != null)
+            try
             {
-                _logger.LogError("POST api/edumaterialtypes - Bad Request - Educational material Type already exists");
-                return BadRequest("Error - Educational material Type already exists");
+                var eduMaterialType = _mapper.Map<EduMaterialType>(eduMaterialTypeCreateDTO);
+
+                var existEduMaterialType = await _db.EduMaterialTypes.CheckIfEduMaterialTypeExists(eduMaterialType);
+
+                if (existEduMaterialType != null)
+                {
+                    _logger.LogError("POST api/edumaterialtypes - Bad Request - Educational material Type already exists");
+                    return BadRequest("Error - Educational material Type already exists");
+                }
+
+                await _db.EduMaterialTypes.Create(eduMaterialType);
+                await _db.Save();
+
+                var eduMaterialTypeDTO = _mapper.Map<EduMaterialTypeReadDTO>(eduMaterialType);
+                _logger.LogInformation($"POST api/edumaterialtypes - Educational material Type added to database");
+
+                return CreatedAtAction(nameof(GetEduMaterialTypeById), new { id = eduMaterialTypeDTO.ID }, eduMaterialTypeDTO);
             }
-
-            await _db.EduMaterialTypes.Create(eduMaterialType);
-            await _db.Save();
-
-            var eduMaterialTypeDTO = _mapper.Map<EduMaterialTypeReadDTO>(eduMaterialType);
-            _logger.LogInformation($"POST api/edumaterialtypes - Educational material Type added to database");
-
-            return CreatedAtAction(nameof(GetEduMaterialTypeById), new { id = eduMaterialTypeDTO.ID }, eduMaterialTypeDTO);
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //PUT api/edumaterialtypes/{id}
@@ -107,20 +131,28 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateEduMaterialTypeById(int id, EduMaterialTypeUpdateDTO eduMaterialTypeUpdateDTO)
         {
-            var eduMaterialType = await _db.EduMaterialTypes.GetById(id);
-
-            if (eduMaterialType == null)
+            try
             {
-                _logger.LogError($"PUT api/edumaterialtypes/{id} - Not Found");
-                return NotFound();
+                var eduMaterialType = await _db.EduMaterialTypes.GetById(id);
+
+                if (eduMaterialType == null)
+                {
+                    _logger.LogError($"PUT api/edumaterialtypes/{id} - Not Found");
+                    return NotFound();
+                }
+
+                _mapper.Map(eduMaterialTypeUpdateDTO, eduMaterialType);
+                await _db.EduMaterialTypes.Update(eduMaterialType);
+                await _db.Save();
+
+                _logger.LogInformation($"PUT api/edumaterialtypes/{id} - No Content - Educational material Type updated");
+                return NoContent();
             }
-
-            _mapper.Map(eduMaterialTypeUpdateDTO, eduMaterialType);
-            await _db.EduMaterialTypes.Update(eduMaterialType);
-            await _db.Save();
-
-            _logger.LogInformation($"PUT api/edumaterialtypes/{id} - No Content - Educational material Type updated");
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
 
         //DELETE api/edumaterialtypes/{id}
@@ -131,19 +163,27 @@ namespace CodecoolMaterialAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteEduMaterialTypeById(int id)
         {
-            var eduMaterialType = await _db.EduMaterialTypes.GetById(id);
-
-            if (eduMaterialType == null)
+            try
             {
-                _logger.LogError($"DELETE api/edumaterialtypes/{id} - Not Found");
-                return NotFound();
+                var eduMaterialType = await _db.EduMaterialTypes.GetById(id);
+
+                if (eduMaterialType == null)
+                {
+                    _logger.LogError($"DELETE api/edumaterialtypes/{id} - Not Found");
+                    return NotFound();
+                }
+
+                await _db.EduMaterialTypes.Delete(eduMaterialType);
+                await _db.Save();
+
+                _logger.LogInformation($"GET api/edumaterialtypes/{id} - No Content - Educational material Type deleted");
+                return NoContent();
             }
-
-            await _db.EduMaterialTypes.Delete(eduMaterialType);
-            await _db.Save();
-
-            _logger.LogInformation($"GET api/edumaterialtypes/{id} - No Content - Educational material Type deleted");
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError("GET api/authors - Problem with Database");
+                return StatusCode(500, "Internal Server Error. Cannot connect wiht Database!");
+            }
         }
     }
 }
