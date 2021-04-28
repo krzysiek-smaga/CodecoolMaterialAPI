@@ -1,6 +1,7 @@
 using CodecoolMaterialAPI.DAL.Data;
 using CodecoolMaterialAPI.DAL.DbInitializers;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,11 +20,19 @@ namespace CodecoolMaterialAPI
             var host = CreateHostBuilder(args).Build();
 
             CreateDbIfNotExists(host);
+            CreateUsers(host);
 
             host.Run();
         }
 
-        public static void CreateDbIfNotExists(IHost host)
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+
+        private static void CreateDbIfNotExists(IHost host)
         {
             using (var scope = host.Services.CreateScope())
             {
@@ -41,11 +50,23 @@ namespace CodecoolMaterialAPI
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+        private static void CreateUsers(IHost host)
+        {
+            using (var scope = host.Services.CreateScope())
+            {
+                var serviceProvider = scope.ServiceProvider;
+                try
                 {
-                    webBuilder.UseStartup<Startup>();
-                });
+                    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                    UsersDataInitializer.SeedData(userManager, roleManager);
+                }
+                catch (Exception ex)
+                {
+                    var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred creating a users.");
+                }
+            }
+        }
     }
 }

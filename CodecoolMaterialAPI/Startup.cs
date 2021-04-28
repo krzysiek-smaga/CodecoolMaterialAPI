@@ -18,6 +18,7 @@ using CodecoolMaterialAPI.DAL.Data;
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Repositories;
 using Newtonsoft.Json.Serialization;
+using CodecoolMaterialAPI.DAL.DbInitializers;
 
 namespace CodecoolMaterialAPI
 {
@@ -42,6 +43,7 @@ namespace CodecoolMaterialAPI
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -70,7 +72,7 @@ namespace CodecoolMaterialAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             if (env.IsDevelopment())
             {
@@ -91,6 +93,8 @@ namespace CodecoolMaterialAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            UsersDataInitializer.SeedData(userManager, roleManager);
 
             app.UseEndpoints(endpoints =>
             {
