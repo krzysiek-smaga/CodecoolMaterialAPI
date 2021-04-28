@@ -38,15 +38,50 @@ namespace CodecoolMaterialAPI.Controllers
         /// <returns>Collection of all educational material navigation points</returns>
         [Authorize(Roles = "admin,user")]
         [HttpGet]
-        public async Task<ActionResult<ICollection<EduMaterialNavPointReadDTO>>> GetAllEduMaterialNavPoint()
+        public async Task<ActionResult<ICollection<EduMaterialNavPointReadDTO>>> GetAllEduMaterialNavPoint(
+            [FromQuery] string materialTypeName, [FromQuery] string orderByPublishDate)
         {
             try
             {
                 var eduMaterialNavPoints = await _db.EduMaterialNavPoints.GetAllEduMaterialNavPointsWithModels();
+
                 if (eduMaterialNavPoints == null)
                 {
                     _logger.LogError("GET api/edumaterialnavpoints - No Content");
                     return NoContent();
+                }
+
+                if (!String.IsNullOrEmpty(materialTypeName))
+                {
+                    var eduMaterialTypes = await _db.EduMaterialTypes.GetAll();
+                    var eduMaterialType = eduMaterialTypes.FirstOrDefault(x => x.Name.ToLower() == materialTypeName.ToLower());
+
+                    if (eduMaterialType != null)
+                    {
+                        eduMaterialNavPoints = eduMaterialNavPoints.Where(x => x.EduMaterialType.Name.ToLower() == materialTypeName.ToLower()).ToList();
+                    }
+                    else
+                    {
+                        _logger.LogError($"GET api/edumaterialnavpoints - Bad Request - Educational material type with name: '{materialTypeName}' doesn't exists. Cannot filter!");
+                        return BadRequest($"Bad Request - Educational material type with name: '{materialTypeName}' doesn't exists. Cannot filter!");
+                    }
+                }
+
+                if (!String.IsNullOrEmpty(orderByPublishDate))
+                {
+                    if (orderByPublishDate.ToLower() == "asc")
+                    {
+                        eduMaterialNavPoints = eduMaterialNavPoints.OrderBy(x => x.PublishDate).ToList();
+                    }
+                    else if (orderByPublishDate.ToLower() == "desc")
+                    {
+                        eduMaterialNavPoints = eduMaterialNavPoints.OrderByDescending(x => x.PublishDate).ToList();
+                    }
+                    else
+                    {
+                        _logger.LogError($"GET api/edumaterialnavpoints - Bad Request - Wrong string in order parameter!");
+                        return BadRequest($"Bad Request - Wrong string in order parameter! Type 'asc' or 'desc'");
+                    }
                 }
 
                 var eduMaterialNavPointsDTO = _mapper.Map<ICollection<EduMaterialNavPointReadDTO>>(eduMaterialNavPoints);
