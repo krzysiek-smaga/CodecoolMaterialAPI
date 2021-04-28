@@ -2,6 +2,7 @@
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Models;
 using CodecoolMaterialAPI.DTOs.AuthorDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ namespace CodecoolMaterialAPI.Controllers
     /// <summary>
     /// Authors API Controller
     /// </summary>
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthorsController : ControllerBase
@@ -35,6 +37,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// GET method returns all authors
         /// </summary>
         /// <returns>Collection of all authors</returns>
+        [Authorize(Roles = "admin,user")]
         [HttpGet]
         public async Task<ActionResult<ICollection<AuthorReadDTO>>> GetAllAuthors()
         {
@@ -54,6 +57,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// GET method returns one author by id
         /// </summary>
+        [Authorize(Roles = "admin,user")]
         [HttpGet("{id}")]
         public async Task<ActionResult<AuthorReadDTO>> GetAuthorById(int id)
         {
@@ -73,6 +77,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// POST method creates new author
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<AuthorReadDTO>> CreateAuthor(AuthorCreateDTO authorCreateDTO)
         {
@@ -99,6 +104,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// PUT method updates author
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAuthorById(int id, AuthorUpdateDTO authorUpdateDTO)
         {
@@ -122,6 +128,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// PATCH method partially updates author
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id}")]
         public async Task<ActionResult> PartialUpdateAuthorById(int id, JsonPatchDocument<AuthorUpdateDTO> patchDocument)
         {
@@ -154,6 +161,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// DELETE method deletes author
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAuthorById(int id)
         {

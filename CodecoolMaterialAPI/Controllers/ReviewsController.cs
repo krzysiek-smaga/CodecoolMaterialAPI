@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CodecoolMaterialAPI.Controllers
 {
     /// <summary>
     /// Authors API Controller
     /// </summary>
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ReviewsController : ControllerBase
@@ -34,6 +36,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// GET method returns all reviews
         /// </summary>
         /// <returns>Collection of all reviews</returns>
+        [Authorize(Roles = "admin,user")]
         [HttpGet]
         public async Task<ActionResult<ICollection<ReviewReadDTO>>> GetAllReviews()
         {
@@ -53,6 +56,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// GET method returns one review by id
         /// </summary>
+        [Authorize(Roles = "admin,user")]
         [HttpGet("{id}")]
         public async Task<ActionResult<ReviewReadDTO>> GetReviewById(int id)
         {
@@ -72,6 +76,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// POST method creates new review
         /// </summary>
+        [Authorize(Roles = "admin,user")]
         [HttpPost]
         public async Task<ActionResult<ReviewReadDTO>> CreateReview(ReviewCreateDTO reviewCreateDTO)
         {
@@ -99,6 +104,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// PUT method updates review
         /// </summary>
+        [Authorize(Roles = "admin,user")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateReviewById(int id, ReviewUpdateDTO reviewUpdateDTO)
         {
@@ -131,6 +137,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// DELETE method deletes review
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteReviewById(int id)
         {

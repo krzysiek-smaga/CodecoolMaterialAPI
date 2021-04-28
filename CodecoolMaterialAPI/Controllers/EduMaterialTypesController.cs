@@ -2,6 +2,7 @@
 using CodecoolMaterialAPI.DAL.Interfaces;
 using CodecoolMaterialAPI.DAL.Models;
 using CodecoolMaterialAPI.DTOs.EduMaterialTypeDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,6 +15,7 @@ namespace CodecoolMaterialAPI.Controllers
     /// <summary>
     /// Educational Material Types API Controller
     /// </summary>
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EduMaterialTypesController : ControllerBase
@@ -34,6 +36,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// GET method returns all educational material types
         /// </summary>
         /// <returns>Collection of all educational material types</returns>
+        [Authorize(Roles = "admin,user")]
         [HttpGet]
         public async Task<ActionResult<ICollection<EduMaterialTypeReadDTO>>> GetAllEduMaterialTypes()
         {
@@ -53,6 +56,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// GET method returns one educational material type by id
         /// </summary>
+        [Authorize(Roles = "admin,user")]
         [HttpGet("{id}")]
         public async Task<ActionResult<EduMaterialTypeReadDTO>> GetEduMaterialTypeById(int id)
         {
@@ -72,6 +76,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// POST method creates new educational material type
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<EduMaterialTypeReadDTO>> CreateEduMaterialType(EduMaterialTypeCreateDTO eduMaterialTypeCreateDTO)
         {
@@ -98,6 +103,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// PUT method updates educational material type
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateEduMaterialTypeById(int id, EduMaterialTypeUpdateDTO eduMaterialTypeUpdateDTO)
         {
@@ -121,6 +127,7 @@ namespace CodecoolMaterialAPI.Controllers
         /// <summary>
         /// DELETE method deletes educational material type
         /// </summary>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteEduMaterialTypeById(int id)
         {
