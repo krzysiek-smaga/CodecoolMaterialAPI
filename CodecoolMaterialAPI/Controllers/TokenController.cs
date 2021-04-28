@@ -1,6 +1,7 @@
 ﻿using CodecoolMaterialAPI.DAL.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -16,15 +17,20 @@ namespace CodecoolMaterialAPI.Controllers
     [ApiController]
     public class TokenController : ControllerBase
     {
+        private readonly IConfiguration _config;
         private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public TokenController(ApplicationDbContext db, UserManager<IdentityUser> userManager)
+        public TokenController(ApplicationDbContext db, UserManager<IdentityUser> userManager, IConfiguration config)
         {
             _db = db;
             _userManager = userManager;
+            _config = config;
         }
 
+        /// <summary>
+        /// POST method creates JWT token for user
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
@@ -69,7 +75,7 @@ namespace CodecoolMaterialAPI.Controllers
             var token = new JwtSecurityToken(
                 new JwtHeader(
                     new SigningCredentials(
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Secretsafdasfasdsdfsadjsadkjflasjdlfsadfjsadjflsdfjkadsjfladsjfasdasdhfasdjkhfajkdhfakjsdhksdf")),
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["SecretKey"])),
                     SecurityAlgorithms.HmacSha256)),
                 new JwtPayload(claims));
 

@@ -57,6 +57,10 @@ namespace CodecoolMaterialAPI
                 opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
+            services.AddCors(options =>
+                options.AddDefaultPolicy(
+                    builder => builder.AllowAnyOrigin()));
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "JwtBearer";
@@ -66,7 +70,7 @@ namespace CodecoolMaterialAPI
                 jwtBeareroptions.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Secretsafdasfasdsdfsadjsadkjflasjdlfsadfjsadjflsdfjkadsjfladsjfasdasdhfasdjkhfajkdhfakjsdhksdf")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecretKey"])),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
@@ -135,6 +139,8 @@ namespace CodecoolMaterialAPI
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
